@@ -1,4 +1,18 @@
 """ IXXI graph library """
+from random import random
+
+def random_graph(n, p):
+    graph = Graph({})
+    for vertex in range(n):
+        graph.add_vertex(vertex)
+    for in_vertex in range(n):
+        for out_vertex in range(n):
+            if in_vertex < out_vertex:
+                if random() < p:
+                    graph.add_edge((in_vertex, out_vertex))
+    return graph
+
+
 class Graph(object):
     def __init__(self, graph_dict={}):
         """ initializes a graph object """
@@ -28,12 +42,6 @@ class Graph(object):
         self.__graph_dict[edge[0]].append(edge[1])
         self.__graph_dict[edge[1]].append(edge[0])
 
-    def vertex_degree(self):
-        return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
-
-    def find_isolated_vertices(self):
-        return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
-
     def __generate_edges(self):
         """ A static method generating the edges of the
         graph "graph". Edges are represented as sets
@@ -45,6 +53,17 @@ class Graph(object):
                 if vertex_in < vertex_out:
                     edges.append((vertex_in, vertex_out))
         return edges
+
+    def vertex_degree(self):
+        return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
+
+    def find_isolated_vertices(self):
+        return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
+
+    def density(self):
+        nbr_edges = len(self.edges())
+        nbr_vetices = len(self.vertices())
+        return 2 * nbr_edges / (nbr_vetices * (nbr_vetices - 1))
 
     def __str__(self):
         """ A better way for printing a graph """
@@ -76,3 +95,15 @@ if __name__ == "__main__":
     graph.add_vertex("h")
     print("Find isolated vertices:")
     print(graph.find_isolated_vertices())
+
+    print("Density of empty graph:")
+    empty_graph = random_graph(50, 0.)
+    print(empty_graph.density())
+
+    print("Density of complete graph:")
+    complete_graph = random_graph(50, 1.)
+    print(complete_graph.density())
+
+    print("Density of random graph:")
+    random_graph = random_graph(3, 0.5)
+    print(random_graph.density())
