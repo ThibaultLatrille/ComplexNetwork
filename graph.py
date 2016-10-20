@@ -57,6 +57,9 @@ class Graph(object):
     def vertex_degree(self):
         return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
 
+    def degree_sequence(self):
+        return sorted(self.vertex_degree(), key=lambda x: x[1], reverse=True)
+
     def find_isolated_vertices(self):
         return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
 
@@ -95,6 +98,8 @@ if __name__ == "__main__":
     graph.add_vertex("h")
     print("Find isolated vertices:")
     print(graph.find_isolated_vertices())
+    print("Degree sequence:")
+    print(graph.degree_sequence())
 
     print("Density of empty graph:")
     empty_graph = random_graph(50, 0.)
