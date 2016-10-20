@@ -28,6 +28,12 @@ class Graph(object):
         self.__graph_dict[edge[0]].append(edge[1])
         self.__graph_dict[edge[1]].append(edge[0])
 
+    def vertex_degree(self):
+        return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
+
+    def find_isolated_vertices(self):
+        return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
+
     def __generate_edges(self):
         """ A static method generating the edges of the
         graph "graph". Edges are represented as sets
@@ -65,3 +71,8 @@ if __name__ == "__main__":
     print(graph.vertices())
     print("Edges of graph:")
     print(graph.edges())
+    print("Degrees of graph:")
+    print(graph.vertex_degree())
+    graph.add_vertex("h")
+    print("Find isolated vertices:")
+    print(graph.find_isolated_vertices())
