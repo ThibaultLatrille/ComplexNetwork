@@ -26,6 +26,9 @@ class Graph(object):
         """ returns the edges of a graph """
         return self.__generate_edges()
 
+    def __len__(self):
+        return len(self.vertices())
+
     def add_vertex(self, vertex):
         """ If the vertex "vertex" is not in
         self.__graph_dict, a key "vertex" with an empty
@@ -58,7 +61,16 @@ class Graph(object):
         return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
 
     def degree_sequence(self):
-        return sorted(self.vertex_degree(), key=lambda x: x[1], reverse=True)
+        return [degree for _, degree in sorted(self.vertex_degree(), key=lambda x: x[1], reverse=True)]
+
+    def erdos_gallai(self, sequence):
+        n = len(sequence)
+        if sum(sequence) % 2 == 1:
+            return False
+        for k in range(1, n+1):
+            if sum(sequence[:k]) > k*(k-1) + sum([min(d, k) for d in sequence[k:n]]):
+                return False
+        return True
 
     def find_isolated_vertices(self):
         return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
@@ -100,15 +112,20 @@ if __name__ == "__main__":
     print(graph.find_isolated_vertices())
     print("Degree sequence:")
     print(graph.degree_sequence())
+    print("Erdos-Gallai test:")
+    print(graph.erdos_gallai(graph.degree_sequence()))
 
     print("Density of empty graph:")
     empty_graph = random_graph(50, 0.)
     print(empty_graph.density())
+    print(empty_graph.erdos_gallai(empty_graph.degree_sequence()))
 
     print("Density of complete graph:")
     complete_graph = random_graph(50, 1.)
     print(complete_graph.density())
+    print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
 
     print("Density of random graph:")
-    random_graph = random_graph(3, 0.5)
+    random_graph = random_graph(50, 0.5)
     print(random_graph.density())
+    print(random_graph.erdos_gallai(random_graph.degree_sequence()))
