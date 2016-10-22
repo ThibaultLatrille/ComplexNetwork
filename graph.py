@@ -1,5 +1,6 @@
 """ IXXI graph library """
 from random import random
+from random import sample
 from collections import deque
 
 
@@ -81,6 +82,20 @@ class Graph(object):
         nbr_edges, nbr_vertices = len(self.edges()), len(self.vertices())
         return 2 * nbr_edges / (nbr_vertices * (nbr_vertices - 1))
 
+    def shortest_path(self, a, b):
+        queue = deque()
+        distance = {a: 0}
+        queue.append(a)
+        while len(queue) > 0:
+            current = queue.popleft()
+            for vertex in self.__graph_dict[current]:
+                if vertex == b:
+                    return distance[current] + 1
+                if not distance.get(vertex):
+                    queue.append(vertex)
+                    distance[vertex] = distance[current] + 1
+        return float("inf")
+
     def connected_components(self):
         components = []
         set_vertices = set(self.vertices())
@@ -137,33 +152,50 @@ if __name__ == "__main__":
       "g": ["a", "d"]
     }
     graph = Graph(G)
-    print("Vertices of graph:")
+    print("\n Vertices of graph:")
     print(graph.vertices())
-    print("Edges of graph:")
+    print("\n Edges of graph:")
     print(graph.edges())
-    print("Degrees of graph:")
+    print("\n Degrees of graph:")
     print(graph.vertex_degree())
     graph.add_vertex("h")
-    print("Find isolated vertices:")
+    print("\n Find isolated vertices:")
     print(graph.find_isolated_vertices())
-    print("Degree sequence:")
+    print("\n Degree sequence:")
     print(graph.degree_sequence())
-    print("Erdos-Gallai test:")
+    print("\n Erdos-Gallai test:")
     print(graph.erdos_gallai(graph.degree_sequence()))
 
-    print("Density of empty graph:")
+    print("\n Density of empty graph:")
     empty_graph = random_graph(50, 0.)
     print(empty_graph.density())
+    print("\n Is empty graph Erdos Gallai ?")
     print(empty_graph.erdos_gallai(empty_graph.degree_sequence()))
 
-    print("Density of complete graph:")
+    print("\n Density of complete graph:")
     complete_graph = random_graph(50, 1.)
     print(complete_graph.density())
+    print("\n Is complete graph Erdos Gallai ?")
     print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
 
-    print("Density of random graph:")
+    print("\n Density of random graph:")
     random_graph = random_graph(50, 0.05)
     print(random_graph.density())
+    print("\n Is random graph Erdos Gallai ?")
     print(random_graph.erdos_gallai(random_graph.degree_sequence()))
-    print(random_graph.connected_components())
+    print("\n Connected components of random graph:")
+    rg_connected_components = random_graph.connected_components()
+    print(rg_connected_components)
+    components_not_single = [c for c in rg_connected_components if len(c) > 2]
+    if len(components_not_single) > 0:
+        vertices = sample(sample(components_not_single, 1)[0], 2)
+        print("\n Shortest path distance between random vertices "
+              "({} and {}) in the same component of random graph:".format(*vertices))
+        print(random_graph.shortest_path(*vertices))
+    if len(rg_connected_components) > 1:
+        vertices = [sample(pop, 1)[0] for pop in sample(rg_connected_components, 2)]
+        print("\n Shortest path distance between random vertices "
+              "({} and {}) in the different components of random graph:".format(*vertices))
+        print(random_graph.shortest_path(*vertices))
+    print("\n Spanning tree of random graph:")
     print(random_graph.spanning_tree())
