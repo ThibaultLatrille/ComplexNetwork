@@ -29,7 +29,7 @@ class Graph(object):
         return self.__generate_edges()
 
     def __len__(self):
-        return len(self.vertices())
+        return len(self.edges())
 
     def add_vertex(self, vertex):
         """ If the vertex "vertex" is not in
@@ -78,9 +78,8 @@ class Graph(object):
         return [vertex for vertex, degree in self.vertex_degree() if degree == 0]
 
     def density(self):
-        nbr_edges = len(self.edges())
-        nbr_vetices = len(self.vertices())
-        return 2 * nbr_edges / (nbr_vetices * (nbr_vetices - 1))
+        nbr_edges, nbr_vertices = len(self.edges()), len(self.vertices())
+        return 2 * nbr_edges / (nbr_vertices * (nbr_vertices - 1))
 
     def connected_components(self):
         components = []
@@ -99,6 +98,23 @@ class Graph(object):
             set_vertices -= set(visited.keys())
             components.append(list(visited.keys()))
         return components
+
+    def spanning_tree(self):
+        return [self.component_spanning_tree(component).edges() for component in self.connected_components()]
+
+    def component_spanning_tree(self, component):
+        spanning_tree = Graph({})
+        queue = deque()
+        spanning_tree.add_vertex(component.pop())
+        queue.extend(spanning_tree.vertices())
+        while len(queue) > 0:
+            current = queue.popleft()
+            for vertex in self.__graph_dict[current]:
+                if vertex not in spanning_tree.vertices():
+                    queue.append(vertex)
+                    spanning_tree.add_vertex(vertex)
+                    spanning_tree.add_edge((current, vertex))
+        return spanning_tree
 
     def __str__(self):
         """ A better way for printing a graph """
@@ -150,3 +166,4 @@ if __name__ == "__main__":
     print(random_graph.density())
     print(random_graph.erdos_gallai(random_graph.degree_sequence()))
     print(random_graph.connected_components())
+    print(random_graph.spanning_tree())
