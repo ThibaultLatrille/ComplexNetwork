@@ -1,5 +1,7 @@
 """ IXXI graph library """
 from random import random
+from collections import deque
+
 
 def random_graph(n, p):
     graph = Graph({})
@@ -80,6 +82,24 @@ class Graph(object):
         nbr_vetices = len(self.vertices())
         return 2 * nbr_edges / (nbr_vetices * (nbr_vetices - 1))
 
+    def connected_components(self):
+        components = []
+        set_vertices = set(self.vertices())
+        queue = deque()
+        while len(set_vertices) > 0:
+            init = set_vertices.pop()
+            visited = {init: True}
+            queue.append(init)
+            while len(queue) > 0:
+                current = queue.popleft()
+                for vertex in self.__graph_dict[current]:
+                    if not visited.get(vertex):
+                        queue.append(vertex)
+                    visited[vertex] = True
+            set_vertices -= set(visited.keys())
+            components.append(list(visited.keys()))
+        return components
+
     def __str__(self):
         """ A better way for printing a graph """
         res = "vertices: "
@@ -126,6 +146,7 @@ if __name__ == "__main__":
     print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
 
     print("Density of random graph:")
-    random_graph = random_graph(50, 0.5)
+    random_graph = random_graph(50, 0.05)
     print(random_graph.density())
     print(random_graph.erdos_gallai(random_graph.degree_sequence()))
+    print(random_graph.connected_components())
