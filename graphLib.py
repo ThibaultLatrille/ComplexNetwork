@@ -95,7 +95,7 @@ class Graph(object):
         return np.array(adj_matrix)
 
     def global_clustering_coeff(self):
-        adj_mtr = self.adjacency_matrix()
+        adj_mtrx = self.adjacency_matrix()
         path_length_two = np.linalg.matrix_power(adj_mtrx, 2)
         closed_triple_mtrx = np.multiply(adj_mtrx, path_length_two)
         n = len(self.vertices())
@@ -149,15 +149,15 @@ class Graph(object):
                     if vertex not in distance:
                         queue.append(vertex)
                         distance[vertex] = distance[current] + 1
-
             diameter = max((diameter, max(distance.values())))
+
         return diameter
 
     def forest_diameters(self):
         return [self.component_diameter(component) for component in self.connected_components()]
 
     def biggest_component_diameter(self):
-        return max(self.diameter)
+        return self.component_diameter(max(self.connected_components(), key=len))
 
     def component_spanning_tree(self, component):
         spanning_tree = Graph({})
