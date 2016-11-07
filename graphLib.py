@@ -232,6 +232,8 @@ class Graph(object):
 
 
 def file_to_graph(file_path):
+    """ import and parse a text file containing an edge list
+    then dynamically construct a dictionnary representation of the graph from the edge list"""
     graph_import = Graph()
     with open(file_path, 'r') as document:
         for line in document:
