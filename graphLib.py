@@ -3,9 +3,13 @@ from random import random
 from random import sample
 from collections import deque
 import numpy as np
+from math import factorial
+import matplotlib.pyplot as plt
 
+def nCr(n,r):
+    return factorial(n) / (factorial(r) * factorial(n-r))
 
-def random_graph(n, p):
+def ER_np(n, p):
     """ create and returns a Erdos-Renyi
     G_n,p random graph -
     where n is the number of vertices
@@ -23,6 +27,25 @@ def random_graph(n, p):
     return graph
 
 
+def ER_nm(n, m):
+    """ create and returns a Erdos-Renyi
+    G_n,m random graph -
+    where n is the number of vertices
+    and m
+     """
+    m, n = int(m), int(n)
+    assert (n * (n-1) / 2) >= m, "Too many edges for the number of vertices"
+    graph = Graph({})
+    for vertex in range(n):
+        graph.add_vertex(vertex)
+
+    for in_vertex, out_vertex in sample([(v_i, v_o)
+                                         for v_i in set(range(n))
+                                         for v_o in set(range(n))
+                                         if v_i < v_o], m):
+            graph.add_edge((in_vertex, out_vertex))
+    return graph
+
 # =========================
 #       GRAPH CLASS
 # =========================
@@ -32,6 +55,9 @@ class Graph(object):
     def __init__(self, graph_dict={}):
         """ initializes a graph object """
         self.__graph_dict = graph_dict
+
+    def dict(self):
+        return self.__graph_dict
 
     def vertices(self):
         """ returns the vertices of a graph """
@@ -59,7 +85,7 @@ class Graph(object):
         The function assumes that edge is of type set, tuple or list;
         (no multiple edges)
         """
-        if edge not in self.edges():
+        if edge[1] not in self.__graph_dict[edge[0]]:
             self.__graph_dict[edge[0]].append(edge[1])
             self.__graph_dict[edge[1]].append(edge[0])
 
@@ -83,6 +109,10 @@ class Graph(object):
     def degree_sequence(self):
         """ returns as a non-increasing list sequence of the vertex degrees of a graph """
         return [degree for _, degree in sorted(self.vertex_degree(), key=lambda x: x[1], reverse=True)]
+
+    def degree_distribution(self):
+        """ returns the degree distribution"""
+        return 
 
     def erdos_gallai(self, sequence):
         """ for a given degree sequence check if it can be
@@ -236,7 +266,7 @@ class Graph(object):
 def file_to_graph(file_path):
     """ import and parse a text file containing an edge list
     then dynamically construct a dictionnary representation of the graph from the edge list"""
-    graph_import = Graph()
+    graph_import = Graph({})
     with open(file_path, 'r') as document:
         for line in document:
             vertices = line.split()
@@ -274,81 +304,36 @@ def file_to_graph(file_path):
 #          TEST
 # =========================
 
+def compare_edge_count(n, p):
+    m = int(p * nCr(n, 2))
+    return float(len(ER_np(n, p).edges())) / m
 
-G = {
-    "a": ["c", "d", "g"],
-    "b": ["c", "f"],
-    "c": ["a", "b", "d", "f"],
-    "d": ["a", "c", "e", "g"],
-    "e": ["d"],
-    "f": ["b", "c"],
-    "g": ["a", "d"]
-}
-graph = Graph(G)
-print("\n Vertices of graph:")
-print(graph.vertices())
-print("\n Edges of graph:")
-print(graph.edges())
-print("\n Degrees of graph:")
-print(graph.vertex_degree())
-graph.add_vertex("h")
 
-print("\n Adjacency matrix:")
-adj_mtx = graph.adjacency_matrix()
-print(adj_mtx)
-print("\n Global clustering coeff:")
-print(graph.global_clustering_coeff())
+def er_degree_distribution(n, p):
+    return list(map(lambda e: nCr(n-1, e)*(p**e)*((1-p)**(n-e-1)), range(n)))
 
-print("\n Find isolated vertices:")
-print(graph.find_isolated_vertices())
-print("\n Degree sequence:")
-print(graph.degree_sequence())
-print("\n Erdos-Gallai test:")
-print(graph.erdos_gallai(graph.degree_sequence()))
 
-print("\n Density of empty graph:")
-empty_graph = random_graph(50, 0.)
-print(empty_graph.density())
-print("\n Is empty graph Erdos Gallai ?")
-print(empty_graph.erdos_gallai(empty_graph.degree_sequence()))
+def edge_count_test(p, x):
+    return list(map(lambda e: compare_edge_count(int(e), p), x))
+
+
+n = 100
+plt.plot(range(n), er_degree_distribution(n, 0.5), linewidth=2)
+plt.xscale('log')
+plt.show()
+
+# x = np.logspace(1, 2.5, 100)
+# plt.plot(x, edge_count_test(0.05, x), linewidth=2)
+# plt.xscale('log')
+# plt.show()
 
 print("\n Density of complete graph:")
-complete_graph = random_graph(50, 1.)
-print(complete_graph.density())
-print("\n Is complete graph Erdos Gallai ?")
-print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
+np_graph = ER_np(50, .5)
+print(np_graph.density())
 
-print("\n Density of random graph:")
-random_graph = random_graph(10, 0.05)
-print(random_graph.density())
-print("\n Is random graph Erdos Gallai ?")
-print(random_graph.erdos_gallai(random_graph.degree_sequence()))
+print("\n Density of complete graph:")
+nm_graph = ER_nm(3000, int(10000))
+print(nm_graph.density())
 
-print("\n List of vertices and respective size for each connected components of the random graph:")
-rg_connected_components_size = random_graph.connected_components()
-print(rg_connected_components_size)
-print("\n List of vertices for each connected components of the random graph:")
-rg_connected_components = random_graph.connected_component_elements()
-print(rg_connected_components)
-print("\n Number of connected components:")
-print(len(rg_connected_components))
 
-components_not_single = [c for c in rg_connected_components if len(c) > 1]
-if len(components_not_single) > 0:
-    vertices = sample(sample(components_not_single, 1)[0], 2)
-    print("\n Shortest path distance between random vertices "
-          "({} and {}) in the same component of the random graph:".format(*vertices))
-    print(random_graph.shortest_path(*vertices))
-if len(rg_connected_components) > 1:
-    vertices = [sample(pop, 1)[0] for pop in sample(rg_connected_components, 2)]
-    print("\n Shortest path distance between random vertices "
-          "({} and {}) in the different components of the random graph:".format(*vertices))
-    print(random_graph.shortest_path(*vertices))
-print("\n Diameter for each component of the random graph:")
-print(random_graph.forest_diameters())
-print("\n List of edges of the spanning tree, for each component of the random graph:")
-print([sp.edges() for sp in random_graph.spanning_forest()])
-print("\n Number of edges of the spanning tree, for each component of the random graph:")
-print([len(sp.edges()) for sp in random_graph.spanning_forest()])
-print("\n Number of vertices for each component of the random graph:")
-print([len(c) for c in rg_connected_components])
+print(sample(range(10), 3))
