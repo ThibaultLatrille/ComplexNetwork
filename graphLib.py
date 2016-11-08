@@ -22,6 +22,7 @@ def random_graph(n, p):
                     graph.add_edge((in_vertex, out_vertex))
     return graph
 
+
 # =========================
 #       GRAPH CLASS
 # =========================
@@ -90,7 +91,7 @@ class Graph(object):
         n = len(sequence)
         if sum(sequence) % 2 == 1:
             return False
-        for k in range(1, n+1):
+        for k in range(1, n + 1):
             if not sum(sequence[:k]) <= k * (k - 1) + sum([min(d, k) for d in sequence[k:n]]):
                 return False
         return True
@@ -122,12 +123,12 @@ class Graph(object):
         path_length_two = np.linalg.matrix_power(adj_mtrx, 2)
         closed_triple_mtrx = np.multiply(adj_mtrx, path_length_two)
         n = len(self.vertices())
-        nbr_closed_triple, nbr_all_triple = 0.0, 0.0 # float because of division
+        nbr_closed_triple, nbr_all_triple = 0.0, 0.0  # float because of division
         nbr_closed_triple += sum(closed_triple_mtrx[i][e] for i in range(n) for e in range(n) if i != e)
         nbr_all_triple += sum(path_length_two[i][e] for i in range(n) for e in range(n) if i != e)
         # instead of not computing the diagonal
         # we could have substract np.trace(path_length_two) from nbr_triple
-        return nbr_closed_triple / nbr_all_triple if nbr_all_triple != 0 else 0 # avoid 0 division
+        return nbr_closed_triple / nbr_all_triple if nbr_all_triple != 0 else 0  # avoid 0 division
 
     def shortest_path(self, a, b):
         """ returns the shortest path distance between two given vertices a, b"""
@@ -226,6 +227,7 @@ class Graph(object):
             res += str(edge) + " "
         return res
 
+
 # =========================
 #      IMPORT DATA
 # =========================
@@ -237,19 +239,20 @@ def file_to_graph(file_path):
     graph_import = Graph()
     with open(file_path, 'r') as document:
         for line in document:
-                vertices = line.split()
-                if not vertices:  # empty line?
-                    continue
-                if len(vertices) % 2 == 0:
-                    graph_import.add_vertex(vertices[0])
-                    graph_import.add_vertex(vertices[1])
-                    graph_import.add_edge((vertices[0], vertices[1]))
-                else:
-                    for v in vertices :
-                        graph_import.add_vertex(v)
-                        if v != vertices[0]:
-                            graph_import.add_edge((vertices[0], v))
+            vertices = line.split()
+            if not vertices:  # empty line?
+                continue
+            if len(vertices) % 2 == 0:
+                graph_import.add_vertex(vertices[0])
+                graph_import.add_vertex(vertices[1])
+                graph_import.add_edge((vertices[0], vertices[1]))
+            else:
+                for v in vertices:
+                    graph_import.add_vertex(v)
+                    if v != vertices[0]:
+                        graph_import.add_edge((vertices[0], v))
     return graph_import
+
 
 # file_list = ('zachary-connected.txt', 'graph_100n_1000m.txt', 'graph_1000n_4000m.txt')
 # print(file_list)
@@ -272,81 +275,80 @@ def file_to_graph(file_path):
 # =========================
 
 
-if __name__ == "__main__":
-    G = {
-      "a": ["c", "d", "g"],
-      "b": ["c", "f"],
-      "c": ["a", "b", "d", "f"],
-      "d": ["a", "c", "e", "g"],
-      "e": ["d"],
-      "f": ["b", "c"],
-      "g": ["a", "d"]
-    }
-    graph = Graph(G)
-    print("\n Vertices of graph:")
-    print(graph.vertices())
-    print("\n Edges of graph:")
-    print(graph.edges())
-    print("\n Degrees of graph:")
-    print(graph.vertex_degree())
-    graph.add_vertex("h")
+G = {
+    "a": ["c", "d", "g"],
+    "b": ["c", "f"],
+    "c": ["a", "b", "d", "f"],
+    "d": ["a", "c", "e", "g"],
+    "e": ["d"],
+    "f": ["b", "c"],
+    "g": ["a", "d"]
+}
+graph = Graph(G)
+print("\n Vertices of graph:")
+print(graph.vertices())
+print("\n Edges of graph:")
+print(graph.edges())
+print("\n Degrees of graph:")
+print(graph.vertex_degree())
+graph.add_vertex("h")
 
-    print("\n Adjacency matrix:")
-    adj_mtx = graph.adjacency_matrix()
-    print(adj_mtx)
-    print("\n Global clustering coeff:")
-    print(graph.global_clustering_coeff())
+print("\n Adjacency matrix:")
+adj_mtx = graph.adjacency_matrix()
+print(adj_mtx)
+print("\n Global clustering coeff:")
+print(graph.global_clustering_coeff())
 
-    print("\n Find isolated vertices:")
-    print(graph.find_isolated_vertices())
-    print("\n Degree sequence:")
-    print(graph.degree_sequence())
-    print("\n Erdos-Gallai test:")
-    print(graph.erdos_gallai(graph.degree_sequence()))
+print("\n Find isolated vertices:")
+print(graph.find_isolated_vertices())
+print("\n Degree sequence:")
+print(graph.degree_sequence())
+print("\n Erdos-Gallai test:")
+print(graph.erdos_gallai(graph.degree_sequence()))
 
-    print("\n Density of empty graph:")
-    empty_graph = random_graph(50, 0.)
-    print(empty_graph.density())
-    print("\n Is empty graph Erdos Gallai ?")
-    print(empty_graph.erdos_gallai(empty_graph.degree_sequence()))
+print("\n Density of empty graph:")
+empty_graph = random_graph(50, 0.)
+print(empty_graph.density())
+print("\n Is empty graph Erdos Gallai ?")
+print(empty_graph.erdos_gallai(empty_graph.degree_sequence()))
 
-    print("\n Density of complete graph:")
-    complete_graph = random_graph(50, 1.)
-    print(complete_graph.density())
-    print("\n Is complete graph Erdos Gallai ?")
-    print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
+print("\n Density of complete graph:")
+complete_graph = random_graph(50, 1.)
+print(complete_graph.density())
+print("\n Is complete graph Erdos Gallai ?")
+print(complete_graph.erdos_gallai(complete_graph.degree_sequence()))
 
-    print("\n Density of random graph:")
-    random_graph = random_graph(10, 0.05)
-    print(random_graph.density())
-    print("\n Is random graph Erdos Gallai ?")
-    print(random_graph.erdos_gallai(random_graph.degree_sequence()))
+print("\n Density of random graph:")
+random_graph = random_graph(10, 0.05)
+print(random_graph.density())
+print("\n Is random graph Erdos Gallai ?")
+print(random_graph.erdos_gallai(random_graph.degree_sequence()))
 
-    print("\n List of vertices and respective size for each connected components of the random graph:")
-    rg_connected_components_size = random_graph.connected_components()
-    print(rg_connected_components_size)
-    print("\n List of vertices for each connected components of the random graph:")
-    rg_connected_components = random_graph.connected_component_elements()
-    print(rg_connected_components)
-    print ("\n Number of connected components:")
-    print (len(rg_connected_components))
+print("\n List of vertices and respective size for each connected components of the random graph:")
+rg_connected_components_size = random_graph.connected_components()
+print(rg_connected_components_size)
+print("\n List of vertices for each connected components of the random graph:")
+rg_connected_components = random_graph.connected_component_elements()
+print(rg_connected_components)
+print("\n Number of connected components:")
+print(len(rg_connected_components))
 
-    components_not_single = [c for c in rg_connected_components if len(c) > 1]
-    if len(components_not_single) > 0:
-        vertices = sample(sample(components_not_single, 1)[0], 2)
-        print("\n Shortest path distance between random vertices "
-              "({} and {}) in the same component of the random graph:".format(*vertices))
-        print(random_graph.shortest_path(*vertices))
-    if len(rg_connected_components) > 1:
-        vertices = [sample(pop, 1)[0] for pop in sample(rg_connected_components, 2)]
-        print("\n Shortest path distance between random vertices "
-              "({} and {}) in the different components of the random graph:".format(*vertices))
-        print(random_graph.shortest_path(*vertices))
-    print("\n Diameter for each component of the random graph:")
-    print(random_graph.forest_diameters())
-    print("\n List of edges of the spanning tree, for each component of the random graph:")
-    print([sp.edges() for sp in random_graph.spanning_forest()])
-    print("\n Number of edges of the spanning tree, for each component of the random graph:")
-    print([len(sp.edges()) for sp in random_graph.spanning_forest()])
-    print("\n Number of vertices for each component of the random graph:")
-    print([len(c) for c in rg_connected_components])
+components_not_single = [c for c in rg_connected_components if len(c) > 1]
+if len(components_not_single) > 0:
+    vertices = sample(sample(components_not_single, 1)[0], 2)
+    print("\n Shortest path distance between random vertices "
+          "({} and {}) in the same component of the random graph:".format(*vertices))
+    print(random_graph.shortest_path(*vertices))
+if len(rg_connected_components) > 1:
+    vertices = [sample(pop, 1)[0] for pop in sample(rg_connected_components, 2)]
+    print("\n Shortest path distance between random vertices "
+          "({} and {}) in the different components of the random graph:".format(*vertices))
+    print(random_graph.shortest_path(*vertices))
+print("\n Diameter for each component of the random graph:")
+print(random_graph.forest_diameters())
+print("\n List of edges of the spanning tree, for each component of the random graph:")
+print([sp.edges() for sp in random_graph.spanning_forest()])
+print("\n Number of edges of the spanning tree, for each component of the random graph:")
+print([len(sp.edges()) for sp in random_graph.spanning_forest()])
+print("\n Number of vertices for each component of the random graph:")
+print([len(c) for c in rg_connected_components])
