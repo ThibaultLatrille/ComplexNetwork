@@ -1,21 +1,23 @@
 """ IXXI graph library """
 from random import random
 from random import sample
+from random import choice
 from collections import deque
 import numpy as np
 from math import factorial
 import matplotlib.pyplot as plt
 
-def nCr(n,r):
+
+def nbr_combination(n, r):
     return factorial(n) / (factorial(r) * factorial(n-r))
 
-def ER_np(n, p):
-    """ create and returns a Erdos-Renyi
-    G_n,p random graph -
-    where n is the number of vertices
-    and p the probability of puting
-    an edge between each two vertices
-     """
+
+def er_np(n, p):
+    """ create and returns a Erdos-Renyi G_n,p random graph,
+    where n is the number of vertices and p the probability of puting
+    an edge between each two vertices.
+    """
+    assert 0. <= p <= 1.
     graph = Graph({})
     for vertex in range(n):
         graph.add_vertex(vertex)
@@ -27,12 +29,10 @@ def ER_np(n, p):
     return graph
 
 
-def ER_nm(n, m):
-    """ create and returns a Erdos-Renyi
-    G_n,m random graph -
-    where n is the number of vertices
-    and m
-     """
+def er_nm(n, m):
+    """ Create and returns a Erdos-Renyi G_n,m random graph,
+    where n is the number of vertices and m the number of edges.
+    """
     m, n = int(m), int(n)
     assert (n * (n-1) / 2) >= m, "Too many edges for the number of vertices"
     graph = Graph({})
@@ -46,13 +46,77 @@ def ER_nm(n, m):
             graph.add_edge((in_vertex, out_vertex))
     return graph
 
+
+def unique_choice(seq, different, not_in_seq):
+    """ Return 1 unique elements from seq.
+    """
+    target = 0
+    while 1:
+        target = choice(seq)
+        if target != different and target not in not_in_seq:
+            break
+    return target
+
+
+def watts_strogatz(n=1000, k=50, beta=0.5):
+    """ Create and returns a Watts-Strogatz random graph,
+        where n is the number of vertices, k the number of adjacent edges,
+        and beta the probability of rewiring.
+    """
+    assert 0. <= beta <= 1., "Watts-Strogatz graph must have 0. <= beta <= 1."
+    assert k % 2 == 0, "Watts-Strogatz graph must have k be an even integer"
+    assert 1 < k < n, "Watts-Strogatz graph must have 1 < k < n"
+    graph = Graph({})
+    graph.add_vertices(n)
+    for vertex in graph.vertices():
+        for ring_vertex in range(int(k/2)):
+            graph.add_edge((vertex, (vertex + (ring_vertex + 1)) % n))
+            graph.add_edge((vertex, (vertex - (ring_vertex + 1)) % n))
+    if beta > 0.:
+        for v_i in graph.vertices():
+            for v_j in graph.dict()[v_i]:
+                if v_i < v_j and random() <= beta:
+                    v_l = unique_choice(graph.vertices(), v_i, graph.dict()[v_i])
+                    graph.rewire_edge((v_i, v_j), (v_i, v_l))
+    return graph
+
+
+def unique_sample(seq, m):
+    """ Return m unique elements from seq.
+
+    This differs from sample which can return repeated
+    elements if seq holds repeated elements.
+    """
+    targets = set()
+    while len(targets) < m:
+        x = choice(seq)
+        targets.add(x)
+    return targets
+
+
+def barabasi_albert(mo=2, m=2, n=1000):
+    """ Create and returns a Barabasi-Albert random graph,
+        where n is the number of vertices and k the number of edges for each added vertex.
+    """
+    assert 1 <= m <= mo <= n, "m < mo < n"
+    graph = er_np(mo, 1)
+    repeated_vertices = [v for edge in graph.edges() for v in edge]
+    for vertex in range(mo, n):
+        graph.add_vertex(vertex)
+        targets = unique_sample(repeated_vertices, m)
+        for v_target in targets:
+            graph.add_edge((vertex, v_target))
+        repeated_vertices.extend(targets)
+        repeated_vertices.extend([vertex]*m)
+    return graph
+
 # =========================
 #       GRAPH CLASS
 # =========================
 
 
 class Graph(object):
-    def __init__(self, graph_dict={}):
+    def __init__(self, graph_dict):
         """ initializes a graph object """
         self.__graph_dict = graph_dict
 
@@ -61,6 +125,10 @@ class Graph(object):
 
     def vertices(self):
         """ returns the vertices of a graph """
+        return list(self.__graph_dict.keys())
+
+    def sorted_vertices(self):
+        """ returns the vertices of a graph """
         return sorted(list(self.__graph_dict.keys()))
 
     def edges(self):
@@ -68,7 +136,7 @@ class Graph(object):
         return self.__generate_edges()
 
     def __len__(self):
-        return len(self.edges())
+        return len(self.vertices())
 
     def add_vertex(self, vertex):
         """ If the vertex "vertex" is not in
@@ -79,6 +147,11 @@ class Graph(object):
         if vertex not in self.vertices():
             self.__graph_dict[vertex] = []
 
+    def add_vertices(self, nbr_vertices):
+        """ returns the vertices of a graph """
+        for vertex in range(nbr_vertices):
+            self.add_vertex(vertex)
+
     def add_edge(self, edge):
         """ It the edge is not in self.__graph_dict,
         the vertices of the edge are added to each other keys
@@ -87,7 +160,23 @@ class Graph(object):
         """
         if edge[1] not in self.__graph_dict[edge[0]]:
             self.__graph_dict[edge[0]].append(edge[1])
+        if edge[0] not in self.__graph_dict[edge[1]]:
             self.__graph_dict[edge[1]].append(edge[0])
+
+    def remove_edge(self, edge):
+        """ It the edge is not in self.__graph_dict,
+        the vertices of the edge are added to each other keys
+        The function assumes that edge is of type set, tuple or list;
+        (no multiple edges)
+        """
+        if edge[1] in self.__graph_dict[edge[0]]:
+            self.__graph_dict[edge[0]].remove(edge[1])
+        if edge[0] in self.__graph_dict[edge[1]]:
+            self.__graph_dict[edge[1]].remove(edge[0])
+
+    def rewire_edge(self, edge1, edge2):
+        self.remove_edge(edge1)
+        self.add_edge(edge2)
 
     def __generate_edges(self):
         """ A static method generating the edges of the
@@ -112,7 +201,8 @@ class Graph(object):
 
     def degree_distribution(self):
         """ returns the degree distribution"""
-        return 
+        bincount = np.bincount([len(self.__graph_dict[vertex]) for vertex in self.vertices()])
+        return bincount.astype(np.float) / sum(bincount)
 
     def erdos_gallai(self, sequence):
         """ for a given degree sequence check if it can be
@@ -138,13 +228,14 @@ class Graph(object):
     def adjacency_matrix(self):
         """ returns the ajacency matrix of a graph
          in the form of a numpy array"""
-        edges = self.edges()
-        n = len(self.vertices())
+        v_dict = {}
+        for i, v in enumerate(self.vertices()):
+            v_dict[v] = i
+        n = len(v_dict)
         adj_matrix = [[0 for _ in range(n)] for _ in range(n)]
-        for i in range(n):
-            for j in range(n):
-                if i != j and (self.vertices()[i], self.vertices()[j]) in edges:
-                    adj_matrix[i][j], adj_matrix[j][i] = 1, 1
+        for v_i, v_j in self.edges():
+            i, j = v_dict[v_i], v_dict[v_j]
+            adj_matrix[i][j], adj_matrix[j][i] = 1, 1
         return np.array(adj_matrix)
 
     def global_clustering_coeff(self):
@@ -199,6 +290,9 @@ class Graph(object):
         """ returns a list of the vertices list of each connected components of a graph """
         return map(lambda x: x[0], self.connected_components())
 
+    def biggest_component_elements(self):
+        return max(self.connected_component_elements(), key=len)
+
     def component_diameter(self, component):
         """ returns the diameter of a given connected component element of a graph"""
         diameter = 0
@@ -215,6 +309,26 @@ class Graph(object):
             diameter = max((diameter, max(distance.values())))
 
         return diameter
+
+    def component_average_path_length(self, component):
+        """ returns the diameter of a given connected component element of a graph"""
+        diameter = []
+        for init in component:
+            queue = deque()
+            distance = {init: 0}
+            queue.append(init)
+            while len(queue) > 0:
+                current = queue.popleft()
+                for vertex in self.__graph_dict[current]:
+                    if vertex not in distance:
+                        queue.append(vertex)
+                        distance[vertex] = distance[current] + 1
+            diameter.extend(distance.values())
+        return np.mean([d for d in diameter if d != 0])
+
+    def biggest_component_average_path_length(self):
+        """ returns the diameter of the biggest connected component of a graph """
+        return self.component_average_path_length(max(self.connected_component_elements(), key=len))
 
     def forest_diameters(self):
         """ returns the list of the diameter of each connected components of a graph """
@@ -305,35 +419,133 @@ def file_to_graph(file_path):
 # =========================
 
 def compare_edge_count(n, p):
-    m = int(p * nCr(n, 2))
-    return float(len(ER_np(n, p).edges())) / m
+    m = int(p * nbr_combination(n, 2))
+    return float(len(er_np(n, p).edges())) / m
 
 
-def er_degree_distribution(n, p):
-    return list(map(lambda e: nCr(n-1, e)*(p**e)*((1-p)**(n-e-1)), range(n)))
+def plot_compare_edge_count(n, p):
+    n_max = max(n, 20)
+    x = np.logspace(1, np.log10(n_max), 50)
+    plt.scatter(x, [compare_edge_count(int(e), p) for e in x],
+                linewidth=2, label="$p={}$".format(p))
+    plt.plot((10, n_max), (1, 1), 'r--', label="Theoretical value")
+    plt.xlim(10, n_max)
+    plt.xscale('log')
+    plt.xlabel('$n$')
+    plt.ylabel('Compare edge count')
+    plt.title("Compare edge count for Erdös-Rényi $G_{n,p}$ \n and $G_{n,m}$ random graph")
+    plt.legend()
+    plt.show()
 
 
-def edge_count_test(p, x):
-    return list(map(lambda e: compare_edge_count(int(e), p), x))
+def plot_connected_components_erdos_renyi(n):
+    range_n = np.logspace(1, np.log10(n), 20)
+    maximum = 1
+    for c in np.linspace(0.5, 1.0, 5):
+        list_graph = [[er_np(int(n), c*(1./n)) for _ in range(3)] for n in range_n]
+        list_size = [np.mean([len(graph.biggest_component_elements()) for graph in rep_graph]) for rep_graph in list_graph]
+
+        plt.scatter(range_n, list_size, c=plt.get_cmap('hsv')(c), label="$np = {}$".format(c))
+        maximum = max((max(list_size), maximum))
+
+    plt.plot(range_n, np.power(range_n, 2./3), c='r')
+    plt.plot(range_n, np.log(range_n), c='b')
+
+    plt.xlabel(r'$n$')
+    plt.ylabel(r'Diameter of largest component')
+    plt.xscale('log')
+
+    plt.xlim(10, n)
+    plt.ylim(1, maximum)
+    plt.legend(loc=(0, 0.5))
+    plt.show()
 
 
-n = 100
-plt.plot(range(n), er_degree_distribution(n, 0.5), linewidth=2)
-plt.xscale('log')
-plt.show()
+def plot_degree_distribution_erdos_renyi(n, p):
+    # the histogram of the data
+    graph = er_np(n, p)
+    hist = graph.degree_distribution()
 
-# x = np.logspace(1, 2.5, 100)
-# plt.plot(x, edge_count_test(0.05, x), linewidth=2)
-# plt.xscale('log')
-# plt.show()
+    degrees = range(len(hist))
 
-print("\n Density of complete graph:")
-np_graph = ER_np(50, .5)
-print(np_graph.density())
+    plt.scatter(degrees, hist, label='Empirical distribution')
+    plt.plot(range(n), [nbr_combination(n-1, e)*(p**e)*((1-p)**(n-e-1)) for e in range(n)],
+             'r--', linewidth=1.5, label='Theoretical distribution')
 
-print("\n Density of complete graph:")
-nm_graph = ER_nm(3000, int(10000))
-print(nm_graph.density())
+    plt.xscale('log')
+    plt.xlim(1, n)
+    plt.ylim(0, max(hist))
+    plt.xlabel(r'$k$')
+    plt.ylabel(r'$P(k)$')
+    plt.title('Degree distribution')
+    plt.legend()
+
+    plt.show()
 
 
-print(sample(range(10), 3))
+def plot_watts_strogatz(n, k):
+    # the histogram of the data
+    list_beta = np.logspace(-4, 0, 20)
+
+    list_graph = [watts_strogatz(n, k, beta) for beta in list_beta]
+    wso = watts_strogatz(n, k, 0.)
+    max_clustering_coef = wso.global_clustering_coeff()
+    list_clustering_coef = [graph.global_clustering_coeff() / max_clustering_coef for graph in list_graph]
+    max_diameter = wso.biggest_component_average_path_length()
+    list_diameter = [graph.biggest_component_average_path_length() / max_diameter for graph in list_graph]
+
+    plt.scatter(list_beta, list_clustering_coef, c='r', label='Clustering coefficient')
+    plt.scatter(list_beta, list_diameter, c='b', label='Average path length')
+    plt.legend()
+
+    plt.xscale('log')
+    plt.xlabel(r'$\beta$')
+    plt.ylim(0, 1)
+    plt.xlim(min(list_beta), max(list_beta))
+    plt.grid(True)
+
+    plt.show()
+
+
+def plot_degree_distribution_barabasi_albert(mo, m, n):
+    graph = barabasi_albert(mo, m, n)
+    hist = graph.degree_distribution()
+
+    degrees = range(len(hist))
+
+    plt.scatter(degrees, hist, label='Empirical distribution')
+    plt.plot(degrees[1:], [2.*m*(m+1)/(k*(k+1)*(k+2)) for k in degrees[1:]],
+             'r--', linewidth=1.5, label='Theoretical distribution')
+
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xlim(degrees[next((i for i, h in enumerate(hist) if h != 0), 1)], len(degrees))
+    plt.ylim(min([h for h in hist if h != 0]), max(hist))
+    plt.xlabel(r'$k$')
+    plt.ylabel(r'$P(k)$')
+    plt.title('Degree distribution')
+    plt.legend()
+    plt.show()
+
+
+def plot_path_length_barabasi_albert(mo, m, n_max):
+    range_n = np.logspace(np.log10(mo), np.log10(n_max), 20)
+    list_graph = [barabasi_albert(mo, m, int(n)) for n in range_n]
+    list_diameter = [graph.biggest_component_average_path_length() for graph in list_graph]
+
+    plt.scatter(range_n, list_diameter)
+    plt.xlabel(r'$n$')
+    plt.ylabel(r'$\mathrm{Average\ path\ length}$')
+
+    plt.xscale('log')
+    plt.xlim(mo, n_max)
+    plt.ylim(1, max(list_diameter))
+
+    plt.show()
+
+# plot_connected_components_erdos_renyi(1000)
+# plot_compare_edge_count(1000, 0.1)
+# plot_degree_distribution_erdos_renyi(1000, 0.02)
+plot_watts_strogatz(1000, 10)
+plot_degree_distribution_barabasi_albert(mo=10, m=10, n=5000)
+plot_path_length_barabasi_albert(mo=2, m=2, n_max=1000)
