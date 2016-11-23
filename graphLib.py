@@ -196,7 +196,7 @@ class Graph(object):
         return [(vertex, len(self.__graph_dict[vertex])) for vertex in self.vertices()]
 
     def degree_sequence(self):
-        """ returns as a non-increasing list sequence of the vertex degrees of a graph """
+        """ returns as a decreasing list sequence of the vertex degrees of a graph """
         return [degree for _, degree in sorted(self.vertex_degree(), key=lambda x: x[1], reverse=True)]
 
     def degree_distribution(self):
@@ -284,11 +284,15 @@ class Graph(object):
                     visited[vertex] = True
             set_vertices -= set(visited.keys())
             components.append(list(visited.keys()))
-        return zip(components, map(lambda e: len(e), components))
+        return zip(components, [len(e) for e in components])
 
     def connected_component_elements(self):
         """ returns a list of the vertices list of each connected components of a graph """
         return map(lambda x: x[0], self.connected_components())
+
+    def connected_component_sizes(self):
+        """ returns a list of the size of each connected components of a graph """
+        return map(lambda x: x[1], self.connected_components())
 
     def biggest_component_elements(self):
         return max(self.connected_component_elements(), key=len)
@@ -439,25 +443,62 @@ def plot_compare_edge_count(n, p):
 
 
 def plot_connected_components_erdos_renyi(n):
-    range_n = np.logspace(1, np.log10(n), 20)
-    maximum = 1
-    for c in np.linspace(0.5, 1.0, 5):
-        list_graph = [[er_np(int(n), c*(1./n)) for _ in range(3)] for n in range_n]
-        list_size = [np.mean([len(graph.biggest_component_elements()) for graph in rep_graph]) for rep_graph in list_graph]
+    p_max = 2.5 / n
+    range_p = np.linspace(0, p_max, 100)
+    sorted_sizes_list = [[sorted(er_np(int(n), p).connected_component_sizes(), reverse=True) for _ in range(10)]
+                         for p in range_p]
 
-        plt.scatter(range_n, list_size, c=plt.get_cmap('hsv')(c), label="$np = {}$".format(c))
-        maximum = max((max(list_size), maximum))
+    max_len = [np.mean([sorted_sizes[0] for sorted_sizes in sorted_sizes_range])
+               for sorted_sizes_range in sorted_sizes_list]
+    plt.scatter(range_p, max_len, c='r', label="$Largest\ component$")
 
-    plt.plot(range_n, np.power(range_n, 2./3), c='r')
-    plt.plot(range_n, np.log(range_n), c='b')
+    sec_len = [np.mean([(sorted_sizes[1] if len(sorted_sizes) > 1 else 0) for sorted_sizes in sorted_sizes_range])
+               for sorted_sizes_range in sorted_sizes_list]
+    plt.scatter(range_p, sec_len, c='b', label="$Second\ largest\ component$")
 
-    plt.xlabel(r'$n$')
-    plt.ylabel(r'Diameter of largest component')
-    plt.xscale('log')
+    plt.plot((0, p_max), (np.log(n), np.log(n)), 'r')
+    plt.text(p_max*0.90, np.log(n), r'$log(n)$', fontsize=15)
+    plt.plot((0, p_max), (n / np.sqrt(n), n / np.sqrt(n)), 'r')
+    plt.text(p_max*0.90, n / np.sqrt(n), r'$n^{2/3}$', fontsize=15)
+    plt.plot((1./n, 1./n), (0, n), 'b')
 
-    plt.xlim(10, n)
-    plt.ylim(1, maximum)
-    plt.legend(loc=(0, 0.5))
+    plt.title("$n = {}$".format(n))
+
+    plt.xlabel(r'$p$')
+    plt.ylabel(r'$Size\ of\ the\ component$')
+    plt.yscale('log')
+
+    plt.plot((0, p_max), (n, n), 'r')
+    plt.text(1.01 / n, 1, r'$p=\frac{1}{n}$', fontsize=15)
+    plt.xlim(0, p_max)
+    plt.ylim(0, n)
+    plt.legend()
+    plt.show()
+
+
+def plot_isolated_vertices_erdos_renyi(n):
+    th = np.log(n) / n
+    p_max = min(1, 1.5 * th)
+    p_min = max(0, 0.5 * th)
+    range_p = np.linspace(p_min, p_max, 100)
+    sorted_sizes_list = [[sorted(er_np(int(n), p).connected_component_sizes(), reverse=True) for _ in range(10)]
+                         for p in range_p]
+
+    single_len = [np.mean([len([s for s in sorted_sizes if s == 1]) for sorted_sizes in sorted_sizes_range])
+                  for sorted_sizes_range in sorted_sizes_list]
+    plt.scatter(range_p, single_len, c='b', label="$Number\ of\ isolated\ vertices$")
+    plt.plot((th, th), (0, n), 'b')
+
+    plt.title("$n = {}$".format(n))
+
+    plt.xlabel(r'$p$')
+    plt.ylabel(r'$Number\ of\ isolated\ vertices$')
+
+    plt.plot((p_min, p_max), (n, n), 'r')
+    plt.xlim(p_min, p_max)
+    plt.text(th*1.01, single_len[0]*0.25, r'$p=\frac{log(n)}{n}$', fontsize=15)
+    plt.ylim(0, single_len[0])
+    plt.legend()
     plt.show()
 
 
@@ -543,9 +584,10 @@ def plot_path_length_barabasi_albert(mo, m, n_max):
 
     plt.show()
 
-# plot_connected_components_erdos_renyi(1000)
+plot_connected_components_erdos_renyi(500)
+plot_isolated_vertices_erdos_renyi(500)
 # plot_compare_edge_count(1000, 0.1)
 # plot_degree_distribution_erdos_renyi(1000, 0.02)
-plot_watts_strogatz(1000, 10)
-plot_degree_distribution_barabasi_albert(mo=10, m=10, n=5000)
-plot_path_length_barabasi_albert(mo=2, m=2, n_max=1000)
+# plot_watts_strogatz(1000, 10)
+# plot_degree_distribution_barabasi_albert(mo=10, m=10, n=5000)
+# plot_path_length_barabasi_albert(mo=2, m=2, n_max=1000)
