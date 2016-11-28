@@ -47,13 +47,14 @@ def er_nm(n, m):
     return graph
 
 
-def unique_choice(seq, different, not_in_seq):
-    """ Return 1 unique elements from seq.
+def unique_choice(seq, not_element, not_seq):
+    """ Return 1 unique elements from seq. Must satisfy that this element is different
+    to 'not_element' and must not be in 'not_seq'
     """
     target = 0
     while 1:
         target = choice(seq)
-        if target != different and target not in not_in_seq:
+        if target != not_element and target not in not_seq:
             break
     return target
 
