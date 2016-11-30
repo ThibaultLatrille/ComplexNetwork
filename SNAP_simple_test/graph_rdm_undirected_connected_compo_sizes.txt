@@ -1,0 +1,17 @@
+#----------------------------------
+#   Size of Connected Components   
+#----------------------------------
+
+Total number of different components = 11
+
+Size of component #0 : 5
+Size of component #1 : 4
+Size of component #2 : 3
+Size of component #3 : 1
+Size of component #4 : 1
+Size of component #5 : 1
+Size of component #6 : 1
+Size of component #7 : 1
+Size of component #8 : 1
+Size of component #9 : 1
+Size of component #10 : 1

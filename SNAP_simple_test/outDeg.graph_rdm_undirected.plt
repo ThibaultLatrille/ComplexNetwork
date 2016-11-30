@@ -1,8 +1,8 @@
 #
-# Undirected graph - out-degree Distribution. G(10, 15). 4 (0.4000) nodes with out-deg > avg deg (3.0), 0 (0.0000) with >2*avg.deg (Wed Nov 30 19:48:57 2016)
+# Undirected graph - out-degree Distribution. G(20, 10). 6 (0.3000) nodes with out-deg > avg deg (1.0), 2 (0.1000) with >2*avg.deg (Wed Nov 30 20:44:55 2016)
 #
 
-set title "Undirected graph - out-degree Distribution. G(10, 15). 4 (0.4000) nodes with out-deg > avg deg (3.0), 0 (0.0000) with >2*avg.deg"
+set title "Undirected graph - out-degree Distribution. G(20, 10). 6 (0.3000) nodes with out-deg > avg deg (1.0), 2 (0.1000) with >2*avg.deg"
 set key bottom right
 set logscale xy 10
 set format x "10^{%L}"

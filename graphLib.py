@@ -438,7 +438,7 @@ def plot_compare_edge_count(n, p):
     plt.xscale('log')
     plt.xlabel('$n$')
     plt.ylabel('Compare edge count')
-    plt.title("Compare edge count for Erdös-Rényi $G_{n,p}$ \n and $G_{n,m}$ random graph")
+    plt.title("Compare edge count for Erdos-Renyi $G_{n,p}$ \n and $G_{n,m}$ random graph")
     plt.legend()
     plt.show()
 
@@ -585,10 +585,10 @@ def plot_path_length_barabasi_albert(mo, m, n_max):
 
     plt.show()
 
-plot_connected_components_erdos_renyi(500)
-plot_isolated_vertices_erdos_renyi(500)
-# plot_compare_edge_count(1000, 0.1)
-# plot_degree_distribution_erdos_renyi(1000, 0.02)
+#plot_connected_components_erdos_renyi(500)
+#plot_isolated_vertices_erdos_renyi(500)
+plot_compare_edge_count(1000, 0.1)
+plot_degree_distribution_erdos_renyi(1000, 0.02)
 # plot_watts_strogatz(1000, 10)
 # plot_degree_distribution_barabasi_albert(mo=10, m=10, n=5000)
 # plot_path_length_barabasi_albert(mo=2, m=2, n_max=1000)
