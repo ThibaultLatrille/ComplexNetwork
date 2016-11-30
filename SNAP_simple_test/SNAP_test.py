@@ -85,7 +85,7 @@ while not snap.IsConnected(u_rndm_graph):
     #in_vertex, out_vertex = rand.sample([(v_i, v_o)
     #                                     for v_i in set(range(len_vertices))
     #                                     for v_o in set(range(len_vertices))
-    #                                     if v_i != v_o] and v_i not in [cc for cc in Components, m)
+    #                                     if v_i not in [cc for cc in Components] dans lequel est v_o, m)
     u_rndm_graph.AddEdge(in_vertex, out_vertex)
 print "Now graph is fully connected"
 
