@@ -19,14 +19,23 @@ else:
 
 
 # ----------------------------------
-#      Random Graph (10, 15)
+#           Graph Testing
 # ----------------------------------
 import snap as s
 
+
+# Generate undirected Erdos Reyni random graph
+# 10 vertices and 15 edges
 UGraph = snap.GenRndGnm(snap.PUNGraph, 10, 15)
-snap.DrawGViz(UGraph, snap.gvlNeato, "graph_undirected.png", "graph 2", True)
+
+# Draw the graph to a plot, counting vertices
+snap.DrawGViz(UGraph, snap.gvlNeato, "graph_rdm_undirected.png", "Undirected Random Graph", True)
+
+#Plot the out degree distrib
+snap.PlotOutDegDistr(UGraph, "graph_rdm_undirected", "Undirected graph - out-degree Distribution")
 
 
+# Compute and print the list of all edges
 for NI in UGraph.Nodes():
     for Id in NI.GetOutEdges():
         print "edge (%d %d)" % (NI.GetId(), Id)

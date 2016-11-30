@@ -1,0 +1,9 @@
+#
+# Undirected graph - out-degree Distribution. G(10, 15). 4 (0.4000) nodes with out-deg > avg deg (3.0), 0 (0.0000) with >2*avg.deg (Wed Nov 30 19:48:57 2016)
+#
+# Out-degree	Count
+1	1
+2	3
+3	2
+4	3
+5	1
